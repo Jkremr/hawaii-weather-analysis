@@ -22,7 +22,6 @@ Stations = Base.classes.station
 session = Session(engine)
 
 
-
 app = Flask(__name__)
 
 # Returns the precipitation observations for the last 12 months of recorded data.
@@ -62,7 +61,8 @@ def stations():
                                             ).all()
 
     station_info_dict = [
-       dict( (k,v) for (k,v) in zip(stations_labels, (str(x[0]), str(x[1]), float(x[2]), float(x[3]), float(x[4])) ) )
+       dict( (k,v) for (k,v) in 
+            zip(stations_labels, (str(x[0]), str(x[1]), float(x[2]), float(x[3]), float(x[4])) ) )
     for x in station_info
     ]
     return jsonify(station_info_dict)
@@ -75,8 +75,8 @@ def last_12_mos_tobs():
 
     # Retrieve the last 12 months of temperature observations data in the data set.
     precipitation_last_12 = session.query(Stations.station_name,\
-                                          Stations.location_name\
-                                         )\
+                                            Stations.location_name\
+                                            )\
         .join(Measurements, Stations.station_name==Measurements.station_name)\
         .add_columns(Measurements.temperature, Measurements.date)\
         .filter(Measurements.temperature.isnot(None))\
@@ -84,7 +84,10 @@ def last_12_mos_tobs():
         .order_by(Measurements.date).all()
 
     precipitation_last_12_dict = [
-        dict( (k,v) for (k,v) in zip(('station_id', 'station_name', 'temp', 'date'), (x[0], x[1], float(x[2]), x[3].strftime('%Y-%m-%d')) ) )
+    dict( 
+        (k,v) 
+        for (k,v) 
+        in zip(('station_id', 'station_name', 'temp', 'date'), (x[0], x[1], float(x[2]), x[3].strftime('%Y-%m-%d')) ) )
     for x in precipitation_last_12
     ]
 
@@ -112,9 +115,9 @@ def normals():
             func.min(Measurements.temperature),
             func.max(Measurements.temperature),
             func.avg(Measurements.temperature)
-                                    )\
-                                    .group_by(Measurements.date)\
-                                    .filter(Measurements.date >= start_date, Measurements.date <= end_date).all()
+            )\
+            .group_by(Measurements.date)\
+            .filter(Measurements.date >= start_date, Measurements.date <= end_date).all()
         l = [[x[0].strftime('%Y-%m-%d'), float(x[1]), float(x[2]), float(x[3])] for x in normals]
         d = [dict((k,v) for (k,v) in zip(labels,x)) for x in l]
         return d
